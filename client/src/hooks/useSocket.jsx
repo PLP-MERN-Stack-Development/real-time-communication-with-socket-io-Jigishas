@@ -25,7 +25,11 @@ export const useSocket = (serverUrl) => {
             auth: {
                 token: token
             },
-            transports: ['websocket', 'polling']
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            timeout: 20000
         });
 
         socketRef.current.on('connect', () => {
@@ -33,13 +37,31 @@ export const useSocket = (serverUrl) => {
             setIsConnected(true);
         });
 
-        socketRef.current.on('disconnect', (reason) => {
-            console.log('❌ Socket disconnected:', reason);
+        socketRef.current.on('reconnect', () => {
+            console.log('🔄 Socket reconnected');
+            setIsConnected(true);
+        });
+
+        socketRef.current.on('reconnect_attempt', (attempt) => {
+            console.log(`🔄 Reconnection attempt ${attempt}`);
+        });
+
+        socketRef.current.on('reconnect_error', (error) => {
+            console.error('🚨 Reconnection error:', error.message);
+        });
+
+        socketRef.current.on('reconnect_failed', () => {
+            console.error('🚨 Reconnection failed');
             setIsConnected(false);
         });
 
         socketRef.current.on('connect_error', (error) => {
             console.error('🚨 Socket connection error:', error.message);
+            setIsConnected(false);
+        });
+
+        socketRef.current.on('disconnect', (reason) => {
+            console.log('❌ Socket disconnected:', reason);
             setIsConnected(false);
         });
 

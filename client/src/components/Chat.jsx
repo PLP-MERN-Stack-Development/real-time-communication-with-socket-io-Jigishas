@@ -7,10 +7,40 @@ const Chat = () => {
     const [messageInput, setMessageInput] = useState('');
     const [onlineUsers, setOnlineUsers] = useState([]);
     const [typingUsers, setTypingUsers] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
     
-    const { socket, isConnected } = useSocket('http://localhost:3001');
-    const { user, logout } = useAuth();
+    const { socket, isConnected } = useSocket('http://localhost:3000');
+    const { user, token, logout } = useAuth();
     const messagesEndRef = useRef(null);
+
+    // Fetch chat history
+    const fetchMessages = async () => {
+        try {
+            const response = await fetch('http://localhost:3000/api/messages', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch messages');
+            }
+
+            const data = await response.json();
+            setMessages(data);
+        } catch (error) {
+            console.error('Error fetching messages:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Fetch messages when component mounts
+    useEffect(() => {
+        if (token) {
+            fetchMessages();
+        }
+    }, [token]);
 
     // Scroll to bottom when new messages arrive
     const scrollToBottom = () => {
@@ -105,49 +135,31 @@ const Chat = () => {
     };
 
     if (!user) {
-        return <div>Please log in to chat</div>;
+        return <div className="text-center text-gray-600">Please log in to chat</div>;
     }
 
     return (
-        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
             {/* Header */}
-            <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                marginBottom: '20px',
-                padding: '10px',
-                background: '#f5f5f5',
-                borderRadius: '8px'
-            }}>
+            <div className="flex justify-between items-center mb-6 p-4 bg-gray-50 rounded-lg">
                 <div>
-                    <h2>Chat Room</h2>
-                    <div>Welcome, <strong>{user.username}</strong>!</div>
-                    <div>Status: {isConnected ? '🟢 Connected' : '🔴 Disconnected'}</div>
+                    <h2 className="text-2xl font-bold text-gray-800">Chat Room</h2>
+                    <div className="text-gray-600">Welcome, <strong className="text-gray-800">{user.username}</strong>!</div>
+                    <div className="text-sm text-gray-500">Status: {isConnected ? '🟢 Connected' : '🔴 Disconnected'}</div>
                 </div>
-                <button onClick={logout} style={{ padding: '8px 16px' }}>
+                <button onClick={logout} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
                     Logout
                 </button>
             </div>
 
-            <div style={{ display: 'flex', gap: '20px' }}>
+            <div className="flex gap-6">
                 {/* Online Users */}
-                <div style={{ width: '200px' }}>
-                    <h3>Online Users ({onlineUsers.length})</h3>
-                    <div style={{ 
-                        background: '#f9f9f9', 
-                        padding: '10px', 
-                        borderRadius: '8px',
-                        maxHeight: '400px',
-                        overflowY: 'auto'
-                    }}>
+                <div className="w-48">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Online Users ({onlineUsers.length})</h3>
+                    <div className="bg-gray-50 p-3 rounded-lg max-h-96 overflow-y-auto">
                         {onlineUsers.map(onlineUser => (
-                            <div key={onlineUser.userId} style={{ 
-                                padding: '5px', 
-                                margin: '2px 0',
-                                background: onlineUser.userId === user.userId ? '#e3f2fd' : 'transparent'
-                            }}>
-                                {onlineUser.username} 
+                            <div key={onlineUser.userId} className={`p-2 my-1 rounded ${onlineUser.userId === user.userId ? 'bg-blue-100' : ''}`}>
+                                {onlineUser.username}
                                 {onlineUser.userId === user.userId && ' (You)'}
                             </div>
                         ))}
@@ -155,94 +167,69 @@ const Chat = () => {
                 </div>
 
                 {/* Chat Area */}
-                <div style={{ flex: 1 }}>
+                <div className="flex-1">
                     {/* Typing Indicators */}
                     {typingUsers.length > 0 && (
-                        <div style={{ 
-                            padding: '5px', 
-                            fontStyle: 'italic', 
-                            color: '#666',
-                            marginBottom: '10px'
-                        }}>
-                            {typingUsers.map(u => u.username).join(', ')} 
+                        <div className="p-2 italic text-gray-600 mb-3">
+                            {typingUsers.map(u => u.username).join(', ')}
                             {typingUsers.length === 1 ? ' is' : ' are'} typing...
                         </div>
                     )}
 
                     {/* Messages */}
-                    <div style={{ 
-                        height: '400px', 
-                        border: '1px solid #ccc',
-                        borderRadius: '8px',
-                        padding: '10px',
-                        overflowY: 'auto',
-                        marginBottom: '10px',
-                        background: '#fff'
-                    }}>
-                        {messages.map((msg, index) => (
-                            <div key={index} style={{ 
-                                marginBottom: '10px',
-                                padding: '8px',
-                                background: msg.type === 'system' ? '#fff3cd' : 
-                                          msg.userId === user.userId ? '#d1ecf1' : '#f8f9fa',
-                                borderRadius: '8px',
-                                borderLeft: msg.type === 'system' ? '3px solid #ffc107' : 
-                                           msg.userId === user.userId ? '3px solid #17a2b8' : '3px solid #6c757d'
-                            }}>
-                                {msg.type === 'system' ? (
-                                    <div style={{ textAlign: 'center', color: '#856404' }}>
-                                        {msg.message}
-                                    </div>
-                                ) : (
-                                    <div>
-                                        <div style={{ 
-                                            display: 'flex', 
-                                            justifyContent: 'space-between',
-                                            marginBottom: '5px'
-                                        }}>
-                                            <strong>{msg.username}</strong>
-                                            <small>{new Date(msg.timestamp).toLocaleTimeString()}</small>
-                                        </div>
-                                        <div>{msg.text}</div>
-                                    </div>
-                                )}
+                    <div className="h-96 border border-gray-300 rounded-lg p-3 overflow-y-auto mb-3 bg-white">
+                        {isLoading ? (
+                            <div className="flex items-center justify-center h-full">
+                                <div className="text-gray-500">Loading messages...</div>
                             </div>
-                        ))}
+                        ) : messages.length === 0 ? (
+                            <div className="text-center text-gray-500 mt-4">
+                                No messages yet. Start the conversation!
+                            </div>
+                        ) : (
+                            messages.map((msg, index) => (
+                                <div key={msg._id || index} className={`mb-3 p-3 rounded-lg ${
+                                    msg.type === 'system'
+                                        ? 'bg-yellow-50 border-l-4 border-yellow-400 text-center text-yellow-800'
+                                        : msg.userId === user.userId
+                                            ? 'bg-blue-50 border-l-4 border-blue-400'
+                                            : 'bg-gray-50 border-l-4 border-gray-400'
+                                }`}>
+                                    {msg.type === 'system' ? (
+                                        <div>{msg.message}</div>
+                                    ) : (
+                                        <div>
+                                            <div className="flex justify-between items-center mb-2">
+                                                <strong className="text-gray-800">{msg.username}</strong>
+                                                <small className="text-gray-500">{new Date(msg.timestamp).toLocaleTimeString()}</small>
+                                            </div>
+                                            <div className="text-gray-700">{msg.text}</div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))
+                        )}
                         <div ref={messagesEndRef} />
                     </div>
 
                     {/* Message Input */}
-                    <form onSubmit={sendMessage}>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <input
-                                type="text"
-                                value={messageInput}
-                                onChange={handleInputChange}
-                                onBlur={stopTyping}
-                                placeholder="Type your message..."
-                                disabled={!isConnected}
-                                style={{ 
-                                    flex: 1, 
-                                    padding: '10px',
-                                    border: '1px solid #ccc',
-                                    borderRadius: '4px'
-                                }}
-                            />
-                            <button 
-                                type="submit" 
-                                disabled={!isConnected || !messageInput.trim()}
-                                style={{ 
-                                    padding: '10px 20px',
-                                    background: '#007bff',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: isConnected && messageInput.trim() ? 'pointer' : 'not-allowed'
-                                }}
-                            >
-                                Send
-                            </button>
-                        </div>
+                    <form onSubmit={sendMessage} className="flex gap-3">
+                        <input
+                            type="text"
+                            value={messageInput}
+                            onChange={handleInputChange}
+                            onBlur={stopTyping}
+                            placeholder="Type your message..."
+                            disabled={!isConnected}
+                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        />
+                        <button
+                            type="submit"
+                            disabled={!isConnected || !messageInput.trim()}
+                            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                        >
+                            Send
+                        </button>
                     </form>
                 </div>
             </div>

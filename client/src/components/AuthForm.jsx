@@ -36,73 +36,54 @@ const AuthForm = () => {
     };
 
     return (
-        <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
-            <h2>{isLogin ? 'Login' : 'Register'}</h2>
-            
+        <div className="max-w-md mx-auto my-12 p-6 bg-white rounded-lg shadow-lg">
+            <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">{isLogin ? 'Login' : 'Register'}</h2>
+
             {error && (
-                <div style={{ 
-                    color: 'red', 
-                    background: '#ffe6e6', 
-                    padding: '10px', 
-                    borderRadius: '4px',
-                    marginBottom: '15px'
-                }}>
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
                     {error}
                 </div>
             )}
 
-            <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: '15px' }}>
-                    <label>Username:</label>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Username:</label>
                     <input
                         type="text"
                         name="username"
                         value={formData.username}
                         onChange={handleChange}
                         required
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
 
-                <div style={{ marginBottom: '15px' }}>
-                    <label>Password:</label>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Password:</label>
                     <input
                         type="password"
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
                         required
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
 
-                <button 
-                    type="submit" 
+                <button
+                    type="submit"
                     disabled={loading}
-                    style={{
-                        width: '100%',
-                        padding: '10px',
-                        background: '#007bff',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: loading ? 'not-allowed' : 'pointer'
-                    }}
+                    className="w-full py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
                 >
                     {loading ? 'Loading...' : (isLogin ? 'Login' : 'Register')}
                 </button>
             </form>
 
-            <p style={{ textAlign: 'center', marginTop: '15px' }}>
+            <p className="text-center mt-6 text-gray-600">
                 {isLogin ? "Don't have an account? " : "Already have an account? "}
-                <button 
+                <button
                     onClick={() => setIsLogin(!isLogin)}
-                    style={{ 
-                        background: 'none', 
-                        border: 'none', 
-                        color: '#007bff', 
-                        cursor: 'pointer' 
-                    }}
+                    className="text-blue-500 hover:text-blue-600 font-medium"
                 >
                     {isLogin ? 'Register' : 'Login'}
                 </button>

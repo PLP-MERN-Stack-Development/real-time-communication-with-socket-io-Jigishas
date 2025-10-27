@@ -71,35 +71,47 @@ const DebugChatComponent = () => {
     };
 
     return (
-        <div>
-            <h2>Debug Chat</h2>
-            <div>
-                <strong>Socket Status:</strong> {socket?.connected ? 'Connected' : 'Disconnected'}
+        <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Debug Chat</h2>
+            <div className="mb-4 space-y-2">
+                <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-700">Socket Status:</span>
+                    <span className={`px-2 py-1 rounded text-sm ${socket?.connected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {socket?.connected ? 'Connected' : 'Disconnected'}
+                    </span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-700">Socket ID:</span>
+                    <span className="text-gray-600">{socket?.id}</span>
+                </div>
             </div>
-            <div>
-                <strong>Socket ID:</strong> {socket?.id}
-            </div>
-            
-            <div style={{border: '1px solid #ccc', height: '300px', overflowY: 'scroll'}}>
+
+            <div className="border border-gray-300 rounded-lg h-64 overflow-y-auto p-3 mb-4 bg-gray-50">
                 {messages.map((msg, index) => (
-                    <div key={index}>
-                        <strong>{msg.username}:</strong> {msg.text}
-                        <small> ({msg.timestamp})</small>
+                    <div key={index} className="mb-2 p-2 bg-white rounded border">
+                        <strong className="text-gray-800">{msg.username}:</strong> {msg.text}
+                        <small className="text-gray-500 ml-2">({msg.timestamp})</small>
                     </div>
                 ))}
             </div>
 
-            <form onSubmit={sendMessage}>
+            <form onSubmit={sendMessage} className="flex gap-3 mb-4">
                 <input
                     type="text"
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
                     placeholder="Type a message..."
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                <button type="submit">Send</button>
+                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    Send
+                </button>
             </form>
 
-            <button onClick={() => console.log('🔍 Current messages:', messages)}>
+            <button
+                onClick={() => console.log('🔍 Current messages:', messages)}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            >
                 Log Messages to Console
             </button>
         </div>

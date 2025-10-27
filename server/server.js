@@ -43,7 +43,7 @@ io.on('connection', (socket) => {
   });
 
   // Handle chat messages
-  socket.on('send_message', (messageData) => {
+  socket.on('chat message', (messageData) => {
     const message = {
       ...messageData,
       id: Date.now(),
@@ -51,15 +51,15 @@ io.on('connection', (socket) => {
       senderId: socket.id,
       timestamp: new Date().toISOString(),
     };
-    
+
     messages.push(message);
-    
+
     // Limit stored messages to prevent memory issues
     if (messages.length > 100) {
       messages.shift();
-    }
-    
-    io.emit('receive_message', message);
+    } 
+    io.emit('chat message', message);
+    console.log(`Message from ${message.sender}: ${message.message}`);
   });
 
   // Handle typing indicator
